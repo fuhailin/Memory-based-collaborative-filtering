@@ -1,11 +1,13 @@
 #! python3
 # -*- coding: utf-8 -*-
-from threading import Lock
-from sklearn.metrics.pairwise import cosine_similarity
-from threading import Thread
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+import datetime
 from math import sqrt
-import time, datetime
+from threading import Lock
+from threading import Thread
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics.pairwise import cosine_similarity
 
 from DataHelper import *
 
@@ -19,8 +21,8 @@ class CollaborativeFilter(object):
         self.train_data, self.test_data = train_test_split(MyDataFrame, test_size=test_size)
         self.train_data_matrix = None
         self.testDataFrame = None
-        self.RMSE = 0
-        self.MAE = 0
+        self.RMSE = dict()
+        self.MAE = dict()
 
     ### 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
@@ -94,7 +96,8 @@ if __name__ == '__main__':
         MyCF.test_data_matrix[line[1] - 1, line[2] - 1] = line[3]
 
     MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix)
-    for K in [25]:  # , 50, 75, 100, 125, 150]:
+    KList = [25, 50, 75, 100, 125, 150]
+    for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
         part1testData, part2testData = train_test_split(MyCF.test_data, test_size=0.5)
@@ -109,8 +112,8 @@ if __name__ == '__main__':
 
         medTime = datetime.datetime.now()
         print((medTime - startTime).seconds)
-        t1 = Thread(target=MyCF.doEvaluate, args=(part1testData, K))
-        t2 = Thread(target=MyCF.doEvaluate, args=(part2testData, K))
+        t1 = Thread(target=MyCF.doEvaluate, args=(part1testData, KList[i]))
+        t2 = Thread(target=MyCF.doEvaluate, args=(part2testData, KList[i]))
         '''
         t3 = Thread(target=MyCF.doEvaluate, args=(testData3, K))
         t4 = Thread(target=MyCF.doEvaluate, args=(testData4, K))
@@ -144,6 +147,16 @@ if __name__ == '__main__':
 
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
-        MyCF.RMSE = sqrt(mean_squared_error(MyCF.truerating, MyCF.predictions))
-        MyCF.MAE = mean_absolute_error(MyCF.truerating, MyCF.predictions)
-        print("RMSE:%d,MAE:%d", MyCF.RMSE, MyCF.MAE)
+        MyCF.RMSE[KList[i]] = sqrt(mean_squared_error(MyCF.truerating, MyCF.predictions))
+        MyCF.MAE[KList[i]] = mean_absolute_error(MyCF.truerating, MyCF.predictions)
+        print("K=%d,RMSE:%f,MAE:%f" % (KList[i], MyCF.RMSE[KList[i]], MyCF.MAE[KList[i]]))
+
+    # Check performance by plotting train and test errors
+    plt.plot(KList, list(MyCF.RMSE.values()), marker='o', label='RMSE')
+    plt.plot(KList, list(MyCF.MAE.values()), marker='v', label='MAE')
+    plt.title('The Error of User-based Collaborative Filtering Algorithm')
+    plt.xlabel('K')
+    plt.ylabel('value')
+    plt.legend()
+    plt.grid()
+    plt.show()
