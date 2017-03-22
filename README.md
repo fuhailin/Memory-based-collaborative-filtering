@@ -7,3 +7,5 @@ K=25    RunTime：39s
 
 RMSE:0.9426714727093027
 MAE:0.738091820385
+![image](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/Datas/IBCF.png)
+![image](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/Datas/UBCF.png)
