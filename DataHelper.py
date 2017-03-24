@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import pickle, numpy, pandas
+from threading import Thread
+
 from sklearn.model_selection import train_test_split
 from collections import Counter
 
@@ -84,6 +86,16 @@ def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
     return data
 
 
+def LoadMovieLens10M(FilePath='Datas/ml-10M100K/ratings.dat'):
+    """
+    :param FilePath:
+    :return: DataFrame
+    """
+    header = ['user_id', 'item_id', 'rating', 'timestamp']
+    data = pandas.read_table(FilePath, sep="::", header=None, names=header)
+    return data
+
+
 def SpiltData(DataSet, SpiltRate=0.25):
     TrainData, TestData = train_test_split(DataSet, test_size=SpiltRate)
     return TrainData, TestData
@@ -98,7 +110,7 @@ def getRating(Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
     averageOfUser = Train_data_matrix[userId - 1][numpy.nonzero(Train_data_matrix[userId - 1])].mean()  # 获取userId 的平均值
     test = simility_matrix[:, userId - 1][userset]
     test1 = numpy.argsort(simility_matrix[:, userId - 1][userset])[0:knumber]
-    test2=simility_matrix[:, userId - 1][test1]
+    test2 = simility_matrix[:, userId - 1][test1]
     Neighborusers = get_K_Neighbors(userId, userset, simility_matrix, knumber)
 
     # 计算每个用户的加权，预测
@@ -126,3 +138,25 @@ def get_K_Neighbors(userinstance, neighborlist, SimNArray, k=10):
     myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
                     0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
     return myresult
+
+'''
+def DataFrame2Matrix(ThisDataFrame, n_users, n_items):
+    ThisMatrix = numpy.zeros((n_users, n_items))
+    for line in ThisDataFrame.itertuples():
+        ThisMatrix[line[1] - 1, line[2] - 1] = line[3]
+    return ThisMatrix
+
+
+class MyThread(Thread):
+    def __init__(self, ThisDataFrame, n_users, n_items):
+        Thread.__init__(self)
+        self.DataFrame = ThisDataFrame
+        self.n_users = n_users
+        self.n_items = n_items
+
+    def run(self):
+        self.result = DataFrame2Matrix(self.DataFrame, self.n_users, self.n_items)
+
+    def get_result(self):
+        return self.result
+'''

@@ -31,16 +31,16 @@ class CollaborativeFilter(object):
         simSums = 0.0
         # 获取K近邻item(评过分的item集)
         itemset = Train_data_matrix[userId - 1].nonzero()
-        averageOfItem = Train_data_matrix[:, (itemId - 1)][
-            numpy.nonzero(Train_data_matrix[:, (itemId - 1)])].mean()  # 获取itemId 的平均值
+        # averageOfItem = Train_data_matrix[:, (itemId - 1)][numpy.nonzero(Train_data_matrix[:, (itemId - 1)])].mean()  # 获取itemId 的平均值
+        averageOfItem=MyCF.ItemMeanMatrix[itemId-1]
         test = simility_matrix[:, userId - 1][itemset]
         test1 = numpy.argsort(test)[0:knumber]
         Neighborusers = self.get_K_Neighbors(itemId, itemset, simility_matrix, knumber)
         # 计算每个用户的加权，预测
         for other in Neighborusers:
             sim = Neighborusers[other]
-            averageOther = Train_data_matrix[:, (other - 1)][
-                numpy.nonzero(Train_data_matrix[:, (other - 1)])].mean()  # 该用户的平均分
+            #averageOther = Train_data_matrix[:, (other - 1)][numpy.nonzero(Train_data_matrix[:, (other - 1)])].mean()  # 该用户的平均分
+            averageOther=MyCF.ItemMeanMatrix[other-1]
             # 累加
             simSums += abs(sim)  # 取绝对值
             jiaquanAverage += (Train_data_matrix[userId - 1][other - 1] - averageOther) * sim  # 累加，一些值为负
@@ -71,23 +71,22 @@ class CollaborativeFilter(object):
         for row in testDataFrame.itertuples():
             prerating = self.getRating(self.train_data_matrix, row[1], row[2], self.SimilityMatrix,
                                        K)  # 基于训练集预测用户评分(用户数目<=K)
-            _truerating.append(row[3])
-            _predictions.append(prerating)
-        self.lock.acquire()
-        self.truerating.extend(_truerating)
-        self.predictions.extend(_predictions)
-        self.lock.release()
-        print(len(self.predictions))
+            self.lock.acquire()
+            self.truerating.append(row[3])
+            self.predictions.append(prerating)
+            self.lock.release()
+            print(len(self.predictions))
 
 
 if __name__ == '__main__':
     # MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     startTime = datetime.datetime.now()
     MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    #MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))
     print(MyData.head())
-    n_users = MyData.user_id.unique().shape[0]
+    n_users = MyData.user_id.max()
     n_items = MyData.item_id.max()
     print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
 
@@ -96,14 +95,11 @@ if __name__ == '__main__':
     for line in MyCF.train_data.itertuples():
         MyCF.train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
 
-    MyCF.test_data_matrix = numpy.zeros((n_users, n_items))
-    for line in MyCF.test_data.itertuples():
-        MyCF.test_data_matrix[line[1] - 1, line[2] - 1] = line[3]
-
     MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix.T)  # ItemSimility
-    KList=[25, 50, 75, 100, 125, 150]
+    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),(MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    KList = [25]#, 50, 75, 100, 125, 150]
 
-    for i in range(len(KList)) :
+    for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
         medTime = datetime.datetime.now()
@@ -115,20 +111,21 @@ if __name__ == '__main__':
         t2.start()
         t1.join()
         t2.join()
-        #MyCF.doEvaluate(MyCF.test_data, K)
+        # MyCF.doEvaluate(MyCF.test_data, K)
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
         MyCF.RMSE[KList[i]] = sqrt(mean_squared_error(MyCF.truerating, MyCF.predictions))
         MyCF.MAE[KList[i]] = mean_absolute_error(MyCF.truerating, MyCF.predictions)
-        print("K=%d,RMSE:%f,MAE:%f" % (KList[i],MyCF.RMSE[KList[i]], MyCF.MAE[KList[i]]))
-
-
+        print("K=%d,RMSE:%f,MAE:%f" % (KList[i], MyCF.RMSE[KList[i]], MyCF.MAE[KList[i]]))
+'''
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of Item-based Collaborative Filtering Algorithm')
+    plt.title('The Error of IBCF in MovieLens 10M')
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
+    plt.savefig('IBCFml10M.png')
     plt.show()
+'''
