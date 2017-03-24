@@ -32,9 +32,12 @@ class CollaborativeFilter(object):
         simSums = 0.0
         # 获取K近邻用户(评过分的用户集)
         userset = Train_data_matrix[:, itemId - 1].nonzero()
+        zeroset=numpy.where(Train_data_matrix[:, itemId - 1]==0)
         averageOfUser = MyCF.UserMeanMatrix[userId - 1]  # 获取userId 的平均值
+        SIM = simility_matrix.copy()
+        SIM[:, userId - 1][zeroset] = numpy.nan
         test = simility_matrix[:, userId - 1][userset]
-        test1 = numpy.argsort(test)[0:knumber]
+        test1 = numpy.argsort(SIM[:, userId - 1])[0:knumber]
         Neighborusers = self.get_K_Neighbors(userId, userset, simility_matrix, knumber)
         # 计算每个用户的加权，预测
         for other in Neighborusers:
@@ -79,8 +82,8 @@ class CollaborativeFilter(object):
 
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
-    MyData = LoadMovieLens1M()
-    #MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    # MyData = LoadMovieLens1M()
+    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     # MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))

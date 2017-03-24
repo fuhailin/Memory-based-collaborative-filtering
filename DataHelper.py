@@ -82,7 +82,7 @@ def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
     :return: DataFrame
     """
     header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pandas.read_table(FilePath, sep="::", header=None, names=header)
+    data = pandas.read_table(FilePath, sep="::", header=None, names=header, engine='python')
     return data
 
 
@@ -92,7 +92,7 @@ def LoadMovieLens10M(FilePath='Datas/ml-10M100K/ratings.dat'):
     :return: DataFrame
     """
     header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pandas.read_table(FilePath, sep="::", header=None, names=header)
+    data = pandas.read_table(FilePath, sep="::", header=None, names=header, engine='python')
     return data
 
 
@@ -138,6 +138,7 @@ def get_K_Neighbors(userinstance, neighborlist, SimNArray, k=10):
     myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
                     0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
     return myresult
+
 
 '''
 def DataFrame2Matrix(ThisDataFrame, n_users, n_items):
