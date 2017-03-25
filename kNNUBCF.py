@@ -4,6 +4,7 @@ import datetime
 import math
 from math import sqrt
 from threading import Lock
+from threading import Thread
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -30,8 +31,13 @@ class CollaborativeFilter(object):
         jiaquanAverage = 0.0
         # 获取K近邻用户(评过分的用户集)
         userset = Train_data_matrix[:, itemId - 1].nonzero()
+        # zeroset = numpy.where(Train_data_matrix[:, itemId - 1] == 0)
         averageOfUser = MyCF.UserMeanMatrix[userId - 1]  # 获取userId 的平均值
+        # SIM = simility_matrix.copy()
+        # SIM[userId - 1][zeroset] = numpy.nan
+        # test2 = numpy.argsort(-SIM[userId - 1])[0:knumber]
         Neighborusers = self.get_K_Neighbors(userId, userset, simility_matrix, knumber)
+        # simSums = numpy.sum(SIM[userId - 1][test2])
         simSums = 0.0
         # 计算每个用户的加权，预测
         for other in Neighborusers:
@@ -55,6 +61,7 @@ class CollaborativeFilter(object):
         for i in neighborlist[0]:
             rank.setdefault(i + 1, 0)  # 设置初始值，以便做下面的累加运算
             rank[i + 1] += SimNArray[userinstance - 1][i]
+        # test=
         myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
                         0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
         return myresult

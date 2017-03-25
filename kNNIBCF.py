@@ -4,6 +4,7 @@ import datetime
 import math
 from math import sqrt
 from threading import Lock
+from threading import Thread
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -30,12 +31,16 @@ class CollaborativeFilter(object):
         simSums = 0.0
         # 获取K近邻item(评过分的item集)
         itemset = Train_data_matrix[userId - 1].nonzero()
-        averageOfItem = MyCF.ItemMeanMatrix[itemId - 1]
+        # averageOfItem = Train_data_matrix[:, (itemId - 1)][numpy.nonzero(Train_data_matrix[:, (itemId - 1)])].mean()  # 获取itemId 的平均值
+        averageOfItem=MyCF.ItemMeanMatrix[itemId-1]
+        test = simility_matrix[:, userId - 1][itemset]
+        test1 = numpy.argsort(test)[0:knumber]
         Neighborusers = self.get_K_Neighbors(itemId, itemset, simility_matrix, knumber)
         # 计算每个用户的加权，预测
         for other in Neighborusers:
             sim = Neighborusers[other]
-            averageOther = MyCF.ItemMeanMatrix[other - 1]
+            #averageOther = Train_data_matrix[:, (other - 1)][numpy.nonzero(Train_data_matrix[:, (other - 1)])].mean()  # 该用户的平均分
+            averageOther=MyCF.ItemMeanMatrix[other-1]
             # 累加
             simSums += abs(sim)  # 取绝对值
             jiaquanAverage += (Train_data_matrix[userId - 1][other - 1] - averageOther) * sim  # 累加，一些值为负
@@ -76,9 +81,9 @@ class CollaborativeFilter(object):
 if __name__ == '__main__':
 
     startTime = datetime.datetime.now()
-    # MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    #MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     MyData = LoadMovieLens1M()
-    # MyData = LoadMovieLens10M()
+    #MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))
     print(MyData.head())
@@ -92,9 +97,9 @@ if __name__ == '__main__':
         MyCF.train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
 
     MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix.T)  # ItemSimility
-    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),
-                                            (MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),(MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
     KList = [25, 50, 75, 100, 125, 150]
+
     for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
