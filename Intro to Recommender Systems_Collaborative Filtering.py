@@ -94,7 +94,7 @@ def predict_nobias(ratings, similarity, kind='user'):
     return pred
 
 
-def predict_topk_nobias(ratings, similarity, kind='user', k=40):
+def predict_topk_nobias(ratings, similarity, kind='user', k=20):
     pred = np.zeros(ratings.shape)
     if kind == 'user':
         user_bias = ratings.mean(axis=1)
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     item_prediction = predict_fast_simple(train, item_similarity, kind='item')
     user_prediction = predict_fast_simple(train, user_similarity, kind='user')
-
+    '''
     print('User-based CF MSE: ' + str(get_mse(user_prediction, test)))
     print('Item-based CF RMSE: ' + str(RMSE(item_prediction, test)))
     pred = predict_topk(train, user_similarity, kind='user', k=40)
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
     pred = predict_topk(train, item_similarity, kind='item', k=40)
     print('Top-k Item-based CF RMSE: ' + str(RMSE(pred, test)))
-
+    '''
     user_pred = predict_topk_nobias(train, user_similarity, kind='user')
     print('Bias-subtracted User-based CF RMSE: ' + str(RMSE(user_pred, test)))
 

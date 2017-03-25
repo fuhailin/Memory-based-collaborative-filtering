@@ -4,6 +4,7 @@ import datetime
 import math
 from math import sqrt
 from threading import Lock
+from threading import Thread
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -23,37 +24,40 @@ class CollaborativeFilter(object):
         self.testDataFrame = None
         self.RMSE = dict()
         self.MAE = dict()
+        self.UserMeanMatrix = None
 
     ### 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
         jiaquanAverage = 0.0
         simSums = 0.0
-        # 获取K近邻item(评过分的item集)
-        itemset = Train_data_matrix[userId - 1].nonzero()
-        averageOfItem = MyCF.ItemMeanMatrix[itemId - 1]
-        Neighborusers = self.get_K_Neighbors(itemId, itemset, simility_matrix, knumber)
+        # 获取K近邻用户(评过分的用户集)
+        userset = Train_data_matrix[:, itemId - 1].nonzero()
+        averageOfUser = MyCF.UserMeanMatrix[userId - 1]  # 获取userId 的平均值
+        test = simility_matrix[:, userId - 1][userset]
+        test1 = numpy.argsort(test)[0:knumber]
+        Neighborusers = self.get_K_Neighbors(userId, userset, simility_matrix, knumber)
         # 计算每个用户的加权，预测
         for other in Neighborusers:
             sim = Neighborusers[other]
-            averageOther = MyCF.ItemMeanMatrix[other - 1]
+            averageOther = MyCF.UserMeanMatrix[other - 1]  # 该用户的平均分
             # 累加
             simSums += abs(sim)  # 取绝对值
-            jiaquanAverage += (Train_data_matrix[userId - 1][other - 1] - averageOther) * sim  # 累加，一些值为负
+            jiaquanAverage += (Train_data_matrix[other - 1][itemId - 1] - averageOther) * sim  # 累加，一些值为负
         # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
         if simSums == 0:
-            if math.isnan(averageOfItem):
+            if math.isnan(averageOfUser):
                 return 0
             else:
-                return averageOfItem
+                return averageOfUser
         else:
-            return averageOfItem + jiaquanAverage / simSums
+            return averageOfUser + jiaquanAverage / simSums
 
-    # 给定用户实例编号，和相似度矩阵，得到最相似的K个item
-    def get_K_Neighbors(self, iteminstance, neighborlist, SimNArray, k=10):
+    # 给定用户实例编号，和相似度矩阵，得到最相似的K个用户
+    def get_K_Neighbors(self, userinstance, neighborlist, SimNArray, k=10):
         rank = dict()
         for i in neighborlist[0]:
             rank.setdefault(i + 1, 0)  # 设置初始值，以便做下面的累加运算
-            rank[i + 1] += SimNArray[iteminstance - 1][i]
+            rank[i + 1] += SimNArray[userinstance - 1][i]
         # test=
         myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
                         0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
@@ -73,11 +77,11 @@ class CollaborativeFilter(object):
             print(len(self.predictions))
 
 
-if __name__ == '__main__':
 
-    startTime = datetime.datetime.now()
+if __name__ == '__main__':
     # MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
-    MyData = LoadMovieLens1M()
+    startTime = datetime.datetime.now()
+    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     # MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))
@@ -86,40 +90,32 @@ if __name__ == '__main__':
     n_items = MyData.item_id.max()
     print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
 
-    # Create two user-item matrices, one for training and another for testing
-    MyCF.train_data_matrix = numpy.zeros((n_users, n_items))
-    for line in MyCF.train_data.itertuples():
-        MyCF.train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
-
-    MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix.T)  # ItemSimility
-    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),
-                                            (MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
-    KList = [25, 50, 75, 100, 125, 150]
+    MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix)
+    MyCF.UserMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(1),
+                                            (MyCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    KList = [25]  # , 50, 75, 100, 125, 150]
     for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
+
         medTime = datetime.datetime.now()
-        part1testData, part2testData = train_test_split(MyCF.test_data, test_size=0.5)
         print((medTime - startTime).seconds)
-        t1 = Thread(target=MyCF.doEvaluate, args=(part1testData, KList[i]))
-        t2 = Thread(target=MyCF.doEvaluate, args=(part2testData, KList[i]))
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
-        # MyCF.doEvaluate(MyCF.test_data, K)
+        MyCF.doEvaluate(MyCF.test_data,KList[i])
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
         MyCF.RMSE[KList[i]] = sqrt(mean_squared_error(MyCF.truerating, MyCF.predictions))
         MyCF.MAE[KList[i]] = mean_absolute_error(MyCF.truerating, MyCF.predictions)
         print("K=%d,RMSE:%f,MAE:%f" % (KList[i], MyCF.RMSE[KList[i]], MyCF.MAE[KList[i]]))
+'''
+
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of IBCF in MovieLens 1M')
+    plt.title('The Error of UBCF in MovieLens 10M')
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
-    plt.savefig('IBCF ml-1M.png')
+    plt.savefig('UBCFml10M.png')
     plt.show()
+'''

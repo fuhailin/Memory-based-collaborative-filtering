@@ -4,7 +4,6 @@ import datetime
 import math
 from math import sqrt
 from threading import Lock
-from threading import Thread
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -29,16 +28,11 @@ class CollaborativeFilter(object):
     ### 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
         jiaquanAverage = 0.0
-        simSums = 0.0
         # 获取K近邻用户(评过分的用户集)
         userset = Train_data_matrix[:, itemId - 1].nonzero()
-        zeroset=numpy.where(Train_data_matrix[:, itemId - 1]==0)
         averageOfUser = MyCF.UserMeanMatrix[userId - 1]  # 获取userId 的平均值
-        SIM = simility_matrix.copy()
-        SIM[:, userId - 1][zeroset] = numpy.nan
-        test = simility_matrix[:, userId - 1][userset]
-        test1 = numpy.argsort(SIM[:, userId - 1])[0:knumber]
         Neighborusers = self.get_K_Neighbors(userId, userset, simility_matrix, knumber)
+        simSums = 0.0
         # 计算每个用户的加权，预测
         for other in Neighborusers:
             sim = Neighborusers[other]
@@ -61,15 +55,12 @@ class CollaborativeFilter(object):
         for i in neighborlist[0]:
             rank.setdefault(i + 1, 0)  # 设置初始值，以便做下面的累加运算
             rank[i + 1] += SimNArray[userinstance - 1][i]
-        # test=
         myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
                         0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
         return myresult
 
     def doEvaluate(self, testDataFrame, K):
         print(testDataFrame.head())
-        _truerating = []
-        _predictions = []
         for row in testDataFrame.itertuples():
             prerating = self.getRating(self.train_data_matrix, row[1], row[2], self.SimilityMatrix,
                                        K)  # 基于训练集预测用户评分(用户数目<=K)
@@ -82,8 +73,8 @@ class CollaborativeFilter(object):
 
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
-    # MyData = LoadMovieLens1M()
-    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    MyData = LoadMovieLens1M()
+    # MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     # MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))
@@ -100,7 +91,7 @@ if __name__ == '__main__':
     MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix)
     MyCF.UserMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(1),
                                             (MyCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
-    KList = [25]  # , 50, 75, 100, 125, 150]
+    KList = [25, 50, 75, 100, 125, 150]
     for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
@@ -154,16 +145,14 @@ if __name__ == '__main__':
         MyCF.RMSE[KList[i]] = sqrt(mean_squared_error(MyCF.truerating, MyCF.predictions))
         MyCF.MAE[KList[i]] = mean_absolute_error(MyCF.truerating, MyCF.predictions)
         print("K=%d,RMSE:%f,MAE:%f" % (KList[i], MyCF.RMSE[KList[i]], MyCF.MAE[KList[i]]))
-'''
 
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of UBCF in MovieLens 10M')
+    plt.title('The Error of UBCF in MovieLens 1M')
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
-    plt.savefig('UBCFml10M.png')
+    plt.savefig('UBCF ml-1M.png')
     plt.show()
-'''
