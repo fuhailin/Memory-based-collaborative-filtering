@@ -4,6 +4,7 @@ import datetime
 import math
 from math import sqrt
 from threading import Lock
+from threading import Thread
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -26,46 +27,27 @@ class CollaborativeFilter(object):
 
     ### 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
-        jiaquanAverage = 0.0
-        simSums = 0.0
-        # 获取K近邻item(评过分的item集)
-        itemset = Train_data_matrix[userId - 1].nonzero()
-        averageOfItem = MyCF.ItemMeanMatrix[itemId - 1]
-        Neighborusers = self.get_K_Neighbors(itemId, itemset, simility_matrix, knumber)
-        # 计算每个用户的加权，预测
-        for other in Neighborusers:
-            sim = Neighborusers[other]
-            averageOther = MyCF.ItemMeanMatrix[other - 1]
-            # 累加
-            simSums += abs(sim)  # 取绝对值
-            jiaquanAverage += (Train_data_matrix[userId - 1][other - 1] - averageOther) * sim  # 累加，一些值为负
-        # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
+        SIM = simility_matrix.copy()
+        zeroset = numpy.where(Train_data_matrix == 0)
+        SIM[zeroset] = 0
+        test3 = sparse_argsort(-SIM)[0:knumber]
+        simSums = numpy.sum(simility_matrix[test3])  # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
+        averageOfUser = MyCF.ItemMeanMatrix[itemId - 1]  # 获取userId 的平均值
+        jiaquanAverage = (Train_data_matrix[test3] - MyCF.ItemMeanMatrix[test3]).dot(
+            simility_matrix[test3])  # 计算每个用户的加权，预测
         if simSums == 0:
-            if math.isnan(averageOfItem):
+            if math.isnan(averageOfUser):
                 return 0
             else:
-                return averageOfItem
+                return averageOfUser
         else:
-            return averageOfItem + jiaquanAverage / simSums
+            return averageOfUser + jiaquanAverage / simSums
 
-    # 给定用户实例编号，和相似度矩阵，得到最相似的K个item
-    def get_K_Neighbors(self, iteminstance, neighborlist, SimNArray, k=10):
-        rank = dict()
-        for i in neighborlist[0]:
-            rank.setdefault(i + 1, 0)  # 设置初始值，以便做下面的累加运算
-            rank[i + 1] += SimNArray[iteminstance - 1][i]
-        # test=
-        myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
-                        0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
-        return myresult
 
     def doEvaluate(self, testDataFrame, K):
         print(testDataFrame.head())
-        _truerating = []
-        _predictions = []
         for row in testDataFrame.itertuples():
-            prerating = self.getRating(self.train_data_matrix, row[1], row[2], self.SimilityMatrix,
-                                       K)  # 基于训练集预测用户评分(用户数目<=K)
+            prerating = self.getRating(self.train_data_matrix[row[1]-1], row[1], row[2], self.SimilityMatrix[row[2]-1], K)  # 基于训练集预测用户评分(用户数目<=K)
             self.lock.acquire()
             self.truerating.append(row[3])
             self.predictions.append(prerating)
@@ -76,9 +58,9 @@ class CollaborativeFilter(object):
 if __name__ == '__main__':
 
     startTime = datetime.datetime.now()
-    # MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    #MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     MyData = LoadMovieLens1M()
-    # MyData = LoadMovieLens10M()
+    #MyData = LoadMovieLens10M()
     MyCF = CollaborativeFilter(MyData, test_size=0.2)
     print(type(MyCF.train_data))
     print(MyData.head())
@@ -92,9 +74,9 @@ if __name__ == '__main__':
         MyCF.train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
 
     MyCF.SimilityMatrix = cosine_similarity(MyCF.train_data_matrix.T)  # ItemSimility
-    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),
-                                            (MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    MyCF.ItemMeanMatrix = numpy.true_divide(MyCF.train_data_matrix.sum(0),(MyCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
     KList = [25, 50, 75, 100, 125, 150]
+
     for i in range(len(KList)):
         MyCF.predictions.clear()
         MyCF.truerating.clear()
