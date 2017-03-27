@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import pickle, numpy, pandas
-from threading import Thread
+import numpy
+import pandas
+import pickle
 
+import numpy as np
 from sklearn.model_selection import train_test_split
-from collections import Counter
 
 
 def SaveData2pkl(DictData, FilePath='Datas/Mydata.pkl', mode='wb'):
@@ -161,3 +162,7 @@ class MyThread(Thread):
     def get_result(self):
         return self.result
 '''
+
+def sparse_argsort(arr):
+    indices = np.nonzero(arr)[0]
+    return indices[np.argsort(arr[indices])]
