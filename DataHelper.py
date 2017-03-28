@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy
-import pandas
+import pandas as pd
 import pickle
 
 import numpy as np
@@ -73,7 +73,7 @@ def LoadMovieLens100k(FilePath='Datas/ml-100k/u.data'):
     :return: DataFrame
     """
     header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pandas.read_table(FilePath, header=None, names=header)
+    data = pd.read_table(FilePath, header=None, names=header)
     return data
 
 
@@ -83,7 +83,7 @@ def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
     :return: DataFrame
     """
     header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pandas.read_table(FilePath, sep="::", header=None, names=header, engine='python')
+    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
     return data
 
 
@@ -93,7 +93,16 @@ def LoadMovieLens10M(FilePath='Datas/ml-10M100K/ratings.dat'):
     :return: DataFrame
     """
     header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pandas.read_table(FilePath, sep="::", header=None, names=header, engine='python')
+    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
+    return data
+
+
+def LoadMovieLens20M(FilePath='Datas/ml-20m/ratings.csv'):
+    """
+    :param FilePath:
+    :return: DataFrame
+    """
+    data = pd.read_csv(FilePath)
     return data
 
 
@@ -163,6 +172,14 @@ class MyThread(Thread):
         return self.result
 '''
 
+
 def sparse_argsort(arr):
     indices = np.nonzero(arr)[0]
     return indices[np.argsort(arr[indices])]
+
+
+# write in txt Appending mode
+def Savetxt(FilePath, message='', mode='a'):
+    file_object = open(FilePath, mode)
+    file_object.write(message + '\n')
+    file_object.close()

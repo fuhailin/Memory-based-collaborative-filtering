@@ -52,16 +52,16 @@ class CollaborativeFilter(object):
             self.truerating.append(row[3])
             self.predictions.append(prerating)
             self.lock.release()
-            print(len(self.predictions))
+            #print(len(self.predictions))
 
 
 if __name__ == '__main__':
 
     startTime = datetime.datetime.now()
     #MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
-    MyData = LoadMovieLens1M()
-    #MyData = LoadMovieLens10M()
-    MyCF = CollaborativeFilter(MyData, test_size=0.2)
+    #MyData = LoadMovieLens1M()
+    MyData = LoadMovieLens10M()
+    MyCF = CollaborativeFilter(MyData, test_size=0.1)
     print(type(MyCF.train_data))
     print(MyData.head())
     n_users = MyData.user_id.max()
@@ -98,10 +98,10 @@ if __name__ == '__main__':
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of IBCF in MovieLens 1M')
+    plt.title('The Error of IBCF in MovieLens 10M')
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
-    plt.savefig('IBCF ml-1M.png')
+    plt.savefig('IBCF ml-10M.png')
     plt.show()
