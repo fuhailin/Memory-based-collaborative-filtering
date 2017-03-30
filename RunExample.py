@@ -1,8 +1,9 @@
 #! python3
 # -*- coding: utf-8 -*-
 import datetime
+from numpy import *
 from threading import Thread
-
+from ThreadWithReturn import *
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
 from Item_basedCF import *
@@ -29,12 +30,16 @@ if __name__ == '__main__':
     n_items = MyData.item_id.max()
     print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
 
-    # Create two user-item matrices, one for training and another for testing
-    train_data_matrix = numpy.zeros((n_users, n_items))
-    for line in train_data.itertuples():
-        train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
+    test1 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, train_data))
+    test2 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, test_data))
+    test1.start()
+    test2.start()
+    train_data_matrix = test1.join()
+    test_data_matrix = test2.join()
     MyUBCF.train_data_matrix = train_data_matrix
     MyIBCF.train_data_matrix = train_data_matrix
+    MyUBCF.test_data_matrix = test_data_matrix
+    MyIBCF.test_data_matrix = test_data_matrix
 
     MyUBCF.SimilityMatrix = cosine_similarity(train_data_matrix)
     MyIBCF.SimilityMatrix = cosine_similarity(train_data_matrix.T)
@@ -42,17 +47,16 @@ if __name__ == '__main__':
                                               (MyUBCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
     MyIBCF.ItemMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(0),
                                               (MyUBCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
-    KList = [25]#, 50, 75, 100, 125, 150]
+    MyIBCF.ItemMeanMatrix[isnan(MyIBCF.ItemMeanMatrix)] = 0
+    KList = [25, 50, 75, 100, 125, 150]
     for i in range(len(KList)):
-        MyUBCF.predictions.clear()
-        MyUBCF.truerating.clear()
-        MyIBCF.predictions.clear()
-        MyIBCF.truerating.clear()
+        MyUBCF.Clear()
+        MyIBCF.Clear()
 
         medTime = datetime.datetime.now()
         print((medTime - startTime).seconds)
-        t1 = Thread(target=MyUBCF.doEvaluate, args=(test_data, KList[i]))
-        t2 = Thread(target=MyIBCF.doEvaluate, args=(test_data, KList[i]))
+        t1 = Thread(target=MyUBCF.doEvaluate, args=(test_data_matrix, KList[i]))
+        t2 = Thread(target=MyIBCF.doEvaluate, args=(test_data_matrix, KList[i]))
         t1.start()
         t2.start()
         t1.join()
@@ -60,6 +64,7 @@ if __name__ == '__main__':
 
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
+    '''
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyUBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyUBCF.MAE.values()), marker='v', label='MAE')
@@ -80,4 +85,4 @@ if __name__ == '__main__':
     plt.grid()
     plt.savefig('IBCF ml-10M.png')
     plt.show()
-
+'''

@@ -150,29 +150,6 @@ def get_K_Neighbors(userinstance, neighborlist, SimNArray, k=10):
     return myresult
 
 
-'''
-def DataFrame2Matrix(ThisDataFrame, n_users, n_items):
-    ThisMatrix = numpy.zeros((n_users, n_items))
-    for line in ThisDataFrame.itertuples():
-        ThisMatrix[line[1] - 1, line[2] - 1] = line[3]
-    return ThisMatrix
-
-
-class MyThread(Thread):
-    def __init__(self, ThisDataFrame, n_users, n_items):
-        Thread.__init__(self)
-        self.DataFrame = ThisDataFrame
-        self.n_users = n_users
-        self.n_items = n_items
-
-    def run(self):
-        self.result = DataFrame2Matrix(self.DataFrame, self.n_users, self.n_items)
-
-    def get_result(self):
-        return self.result
-'''
-
-
 def sparse_argsort(arr):
     indices = np.nonzero(arr)[0]
     return indices[np.argsort(arr[indices])]
@@ -183,3 +160,10 @@ def Savetxt(FilePath, message='', mode='a'):
     file_object = open(FilePath, mode)
     file_object.write(message + '\n')
     file_object.close()
+
+
+def DataFrame2Matrix(n_users, n_items, dataframe):
+    train_data_matrix = numpy.zeros((n_users, n_items))
+    for line in dataframe.itertuples():
+        train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
+    return train_data_matrix
