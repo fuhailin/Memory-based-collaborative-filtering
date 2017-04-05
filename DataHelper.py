@@ -2,7 +2,7 @@
 import numpy
 import pandas as pd
 import pickle
-
+import heapq
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -111,42 +111,12 @@ def SpiltData(DataSet, SpiltRate=0.25):
     return TrainData, TestData
 
 
-### 平均加权策略，预测userId对itemId的评分
-def getRating(Train_data_matrix, userId, itemId, simility_matrix, knumber=20):
-    jiaquanAverage = 0.0
-    simSums = 0.0
-    # 获取K近邻用户(评过分的用户集)
-    userset = Train_data_matrix[:, itemId - 1].nonzero()
-    averageOfUser = Train_data_matrix[userId - 1][numpy.nonzero(Train_data_matrix[userId - 1])].mean()  # 获取userId 的平均值
-    test = simility_matrix[:, userId - 1][userset]
-    test1 = numpy.argsort(simility_matrix[:, userId - 1][userset])[0:knumber]
-    test2 = simility_matrix[:, userId - 1][test1]
-    Neighborusers = get_K_Neighbors(userId, userset, simility_matrix, knumber)
-
-    # 计算每个用户的加权，预测
-    for other in Neighborusers:
-        sim = Neighborusers[other]
-        averageOther = Train_data_matrix[other - 1][numpy.nonzero(Train_data_matrix[other - 1])].mean()  # 该用户的平均分
-        # 累加
-        simSums += abs(sim)  # 取绝对值
-        jiaquanAverage += (Train_data_matrix[other - 1][itemId - 1] - averageOther) * sim  # 累加，一些值为负
-
-    # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
-    if simSums == 0:
-        return averageOfUser
-    else:
-        return averageOfUser + jiaquanAverage / simSums
-
-
-# 给定用户实例编号，和相似度矩阵，得到最相似的K个用户
-def get_K_Neighbors(userinstance, neighborlist, SimNArray, k=10):
-    rank = dict()
-    for i in neighborlist[0]:
-        rank.setdefault(i + 1, 0)  # 设置初始值，以便做下面的累加运算
-        rank[i + 1] += SimNArray[userinstance - 1][i]
-    # test=
-    myresult = dict(sorted(rank.items(), key=lambda x: x[1], reverse=True)[
-                    0:k])  # 用sorted方法对推荐的物品进行排序，预计评分高的排在前面，再取其中nitem个，nitem为每个用户推荐的物品数量
+# 给定用户实例编号，和相似度矩阵，得到最相似的K个用户,对用户共同评价过的物品中找到最相似的K个对象
+def get_K_Neighbors(Train_data_matrix, simility_matrix, knumber=10):
+    SIM = simility_matrix.copy()
+    zeroset = numpy.where(Train_data_matrix == 0)
+    SIM[zeroset] = 0
+    myresult = sparse_argsort(-SIM)[0:knumber]
     return myresult
 
 
@@ -167,3 +137,20 @@ def DataFrame2Matrix(n_users, n_items, dataframe):
     for line in dataframe.itertuples():
         train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
     return train_data_matrix
+
+
+def get_N_Recommends(neighborset, userIndex, Train_data_matrix, simility_matrix, Nnumber=10):
+    myTrain_data_matrix = Train_data_matrix.copy()
+    if len(neighborset)!=0:
+        for i in neighborset:
+            myTrain_data_matrix[i] = myTrain_data_matrix[i] * simility_matrix[userIndex][i]
+        watched = myTrain_data_matrix[userIndex].nonzero()
+        myTrain_data_matrix[:, watched] = 0
+        recommendset = myTrain_data_matrix[neighborset]
+        teat1 = np.where(recommendset >= heapq.nlargest(Nnumber, recommendset.flatten())[-1])
+        return teat1[1]
+    else: # 冷启动处理
+        watched = myTrain_data_matrix[userIndex].nonzero()
+        myTrain_data_matrix[:, watched] = 0
+        teat1 = np.vstack(np.unravel_index(np.argpartition(myTrain_data_matrix.flatten(), -2)[-Nnumber:], myTrain_data_matrix.shape)).T
+        return teat1[:,1]
