@@ -41,20 +41,18 @@ class UBCollaborativeFilter(object):
         a, b = testDataMatrix.nonzero()
         for userIndex, itemIndex in zip(a, b):
             # for row in testDataFrame.itertuples():
-            neighborset = get_K_Neighbors(self.train_data_matrix[:, itemIndex], self.SimilityMatrix[userIndex],
+            neighborset = get_K_Neighbors(self.train_data_matrix[:, 0], self.SimilityMatrix[0],
                                           K)  # 用户最相似的K个用户
             recommendsettest = self.Recommender(userIndex, neighborset, 20)
             prerating = self.getRating(self.train_data_matrix[:, itemIndex], userIndex, self.SimilityMatrix[userIndex],
                                        neighborset)  # 基于训练集预测用户评分(用户数目<=K)
-            """
             self.lock.acquire()
-            self.truerating.append(testDataMatrix[q][w])
+            self.truerating.append(testDataMatrix[userIndex][itemIndex])
             self.predictions.append(prerating)
             self.lock.release()
-            """
-            # print(len(self.predictions))
-        # self.RMSE[K] = RMSE(self.truerating, self.predictions)
-        # self.MAE[K] = MAE(self.truerating, self.predictions)
+            print(len(self.predictions))
+        self.RMSE[K] = RMSE(self.truerating, self.predictions)
+        self.MAE[K] = MAE(self.truerating, self.predictions)
         self.Recall[K] = self.hit / (self.recall * 1.0)
         self.Precision[K] = self.hit / (self.precision * 1.0)
         print("UBCF  K=%d,RMSE:%f,MAE:%f,RECALL:%f,PRECISION:%f" % (
