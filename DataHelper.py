@@ -141,9 +141,10 @@ def DataFrame2Matrix(n_users, n_items, dataframe):
 
 def get_N_Recommends(neighborset, userIndex, Train_data_matrix, simility_matrix, Nnumber=10):
     myTrain_data_matrix = Train_data_matrix.copy()
-    if len(neighborset)!=0:
-        for i in neighborset:
-            myTrain_data_matrix[i] = myTrain_data_matrix[i] * simility_matrix[userIndex][i]
+    if len(neighborset) != 0:
+        # for i in neighborset:
+        #    myTrain_data_matrix[i] = myTrain_data_matrix[i] * simility_matrix[userIndex][i]
+        myTrain_data_matrix[neighborset] = np.multiply(myTrain_data_matrix[neighborset].T, simility_matrix[userIndex][neighborset]).T
         watched = myTrain_data_matrix[userIndex].nonzero()
         myTrain_data_matrix[:, watched] = 0
         recommendset = myTrain_data_matrix[neighborset]
