@@ -1,14 +1,13 @@
 #! python3
 # -*- coding: utf-8 -*-
 from threading import Lock
+
 from DataHelper import *
 from EvaluationHelper import *
-import heapq
-import matplotlib.pyplot as plt
 
 
 class UBCollaborativeFilter(object):
-    def __init__(self):
+    def __init__(self,FileType='ml-100k'):
         self.lock = Lock()
         self.SimilityMatrix = None
         self.truerating = []
@@ -19,6 +18,7 @@ class UBCollaborativeFilter(object):
         self.RMSE = dict()
         self.MAE = dict()
         self.UserMeanMatrix = None
+        self.FileType = FileType
 
     ### 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, simility_matrix, neighborset):
@@ -46,7 +46,7 @@ class UBCollaborativeFilter(object):
         self.RMSE[K] = RMSE(self.truerating, self.predictions)
         self.MAE[K] = MAE(self.truerating, self.predictions)
         print("UBCF  K=%d,RMSE:%f,MAE:%f" % (K, self.RMSE[K], self.MAE[K]))
-        Savetxt('Datas/User-basedCF.txt', "UBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (K, self.RMSE[K], self.MAE[K]))
+        Savetxt('Datas/'+self.FileType+'/User-basedCF.txt', "UBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (K, self.RMSE[K], self.MAE[K]))
 
     def Clear(self):
         self.truerating = []

@@ -1,28 +1,27 @@
 #! python3
 # -*- coding: utf-8 -*-
 import datetime
+
 from numpy import *
-from threading import Thread
-from ThreadWithReturn import *
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
 from Item_basedCF import *
+from ThreadWithReturn import *
 from User_basedCF import *
 
 MovieLensData = {
     1: 'Datas/ml-100k/u.data',
     2: 'Datas/ml-1M/ratings.dat',
-    3: 'Datas/ml-10M100K/ratings.dat',
+    3: 'Datas/ml-10M/ratings.dat',
     4: 'Datas/ml-20m/ratings.csv'
 }
 
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
-    # MyData = LoadMovieLens1M()
-    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
-    # MyData = LoadMovieLens10M()
-    MyUBCF = UBCollaborativeFilter()
-    MyIBCF = IBCollaborativeFilter()
+    filetype = 'ml-100k'
+    MyData = LoadMovieLens(filetype)
+    MyUBCF = UBCollaborativeFilter(filetype)
+    MyIBCF = IBCollaborativeFilter(filetype)
     train_data, test_data = train_test_split(MyData, test_size=0.1)
     print(type(train_data))
     print(MyData.head())
@@ -68,20 +67,20 @@ if __name__ == '__main__':
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyUBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyUBCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of UBCF in MovieLens 10M')
+    plt.title('The Error of UBCF in MovieLens ' + MyUBCF.FileType)
     plt.xlabel('K')
-    plt.ylabel('value')
+    plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('UBCF ml-10M.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/UBCF ' + MyUBCF.FileType + '.png')
     plt.show()
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyIBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyIBCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of IBCF in MovieLens 10M')
+    plt.title('The Error of IBCF in MovieLens ' + MyIBCF.FileType)
     plt.xlabel('K')
-    plt.ylabel('value')
+    plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('IBCF ml-10M.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/IBCF ' + MyIBCF.FileType + '.png')
     plt.show()

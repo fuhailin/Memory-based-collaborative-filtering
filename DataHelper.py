@@ -67,6 +67,25 @@ def LoadDoubanData(FilePath='Datas/Mydata.pkl'):
     return UserRating
 
 
+def LoadMovieLens(FileType='ml-100k'):
+    """
+    :param FileType:
+    :return: DataFrame
+    """
+    if FileType == 'ml-100k':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-100k/u.data', header=None, names=header)
+    if FileType == 'ml-1M':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-1M/ratings.dat', sep="::", header=None, names=header, engine='python')
+    if FileType == 'Datas/ml-10M':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-10M/ratings.dat', sep="::", header=None, names=header, engine='python')
+    if FileType == 'ml-20m':
+        data = pd.read_csv('Datas/ml-20m/ratings.csv')
+    return data
+
+
 def LoadMovieLens100k(FilePath='Datas/ml-100k/u.data'):
     """
     :param FilePath:
@@ -87,7 +106,7 @@ def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
     return data
 
 
-def LoadMovieLens10M(FilePath='Datas/ml-10M100K/ratings.dat'):
+def LoadMovieLens10M(FilePath='Datas/ml-10M/ratings.dat'):
     """
     :param FilePath:
     :return: DataFrame
