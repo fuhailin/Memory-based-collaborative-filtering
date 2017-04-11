@@ -137,20 +137,3 @@ def DataFrame2Matrix(n_users, n_items, dataframe):
     for line in dataframe.itertuples():
         train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
     return train_data_matrix
-
-
-def get_N_Recommends(neighborset, userIndex, Train_data_matrix, simility_matrix, Nnumber=10):
-    myTrain_data_matrix = Train_data_matrix.copy()
-    if len(neighborset)!=0:
-        for i in neighborset:
-            myTrain_data_matrix[i] = myTrain_data_matrix[i] * simility_matrix[userIndex][i]
-        watched = myTrain_data_matrix[userIndex].nonzero()
-        myTrain_data_matrix[:, watched] = 0
-        recommendset = myTrain_data_matrix[neighborset]
-        teat1 = np.where(recommendset >= heapq.nlargest(Nnumber, recommendset.flatten())[-1])
-        return teat1[1]
-    else: # 冷启动处理
-        watched = myTrain_data_matrix[userIndex].nonzero()
-        myTrain_data_matrix[:, watched] = 0
-        teat1 = np.vstack(np.unravel_index(np.argpartition(myTrain_data_matrix.flatten(), -2)[-Nnumber:], myTrain_data_matrix.shape)).T
-        return teat1[:,1]

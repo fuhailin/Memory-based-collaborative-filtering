@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
-    '''
+
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyUBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyUBCF.MAE.values()), marker='v', label='MAE')
@@ -85,4 +85,3 @@ if __name__ == '__main__':
     plt.grid()
     plt.savefig('IBCF ml-10M.png')
     plt.show()
-'''
