@@ -18,15 +18,19 @@ MovieLensData = {
 
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
-    filetype = 'ml-100k'
+    filetype = 'ml-20m'
     MyData = LoadMovieLens(filetype)
     MyUBCF = UBCollaborativeFilter(filetype)
     MyIBCF = IBCollaborativeFilter(filetype)
-    train_data, test_data = train_test_split(MyData, test_size=0.1)
+    train_data, test_data = train_test_split(MyData, test_size=0.2)
     print(type(train_data))
     print(MyData.head())
-    n_users = MyData.user_id.max()
-    n_items = MyData.item_id.max()
+    if filetype == 'ml-20m':
+        n_users = MyData.userId.max()
+        n_items = MyData.movieId.max()
+    else:
+        n_users = MyData.user_id.max()
+        n_items = MyData.item_id.max()
     print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
 
     test1 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, train_data))

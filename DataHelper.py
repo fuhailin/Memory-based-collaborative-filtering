@@ -78,50 +78,11 @@ def LoadMovieLens(FileType='ml-100k'):
     if FileType == 'ml-1M':
         header = ['user_id', 'item_id', 'rating', 'timestamp']
         data = pd.read_table('Datas/ml-1M/ratings.dat', sep="::", header=None, names=header, engine='python')
-    if FileType == 'Datas/ml-10M':
+    if FileType == 'ml-10M':
         header = ['user_id', 'item_id', 'rating', 'timestamp']
         data = pd.read_table('Datas/ml-10M/ratings.dat', sep="::", header=None, names=header, engine='python')
     if FileType == 'ml-20m':
         data = pd.read_csv('Datas/ml-20m/ratings.csv')
-    return data
-
-
-def LoadMovieLens100k(FilePath='Datas/ml-100k/u.data'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, header=None, names=header)
-    return data
-
-
-def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
-    return data
-
-
-def LoadMovieLens10M(FilePath='Datas/ml-10M/ratings.dat'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
-    return data
-
-
-def LoadMovieLens20M(FilePath='Datas/ml-20m/ratings.csv'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    data = pd.read_csv(FilePath)
     return data
 
 

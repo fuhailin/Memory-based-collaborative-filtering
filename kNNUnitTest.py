@@ -11,7 +11,7 @@ from User_basedCF import *
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
     # MyData = LoadMovieLens1M()
-    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    MyData = LoadMovieLens('ml-100k')
     # MyData = LoadMovieLens10M()
     MyUBCF = UBCollaborativeFilter()
     train_data, test_data = train_test_split(MyData, test_size=0.1)
