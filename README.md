@@ -1,4 +1,7 @@
 # Memory-based-collaborative-filtering
+
+[![Build Status](https://travis-ci.org/fuhailin/Memory-based-collaborative-filtering.svg?branch=master)](https://travis-ci.org/fuhailin/Memory-based-collaborative-filtering)
+
 contain User-based CF([UBCF](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/kNNUBCF.py)),Item-based CF([IBCF](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/kNNIBCF.py))
 A k-nearest neighbors Recommender System use MovieLens dataset in Python
 
