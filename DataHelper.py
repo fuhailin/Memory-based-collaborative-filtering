@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import numpy
-import pandas as pd
 import pickle
-import heapq
+
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
@@ -20,7 +19,7 @@ def SaveData2pkl(DictData, FilePath='Datas/Mydata.pkl', mode='wb'):
 
 def SaveData2cvs(MatrixData, FilePath='Datas/Mydata.pkl', Thisdelimiter=','):
     try:
-        numpy.savetxt(FilePath, MatrixData, delimiter=Thisdelimiter)
+        np.savetxt(FilePath, MatrixData, delimiter=Thisdelimiter)
         return True
     except Exception as e:
         print(repr(e))
@@ -40,7 +39,7 @@ def LoadData4pkl(FilePath='Datas/Mydata.pkl', mode='rb'):
 
 def LoadData4cvs(FilePath='Datas/Mydata.pkl', Thisdelimiter=',', mode='rb'):
     try:
-        my_matrix = numpy.loadtxt(open(FilePath, mode), delimiter=Thisdelimiter, skiprows=0)
+        my_matrix = np.loadtxt(open(FilePath, mode), delimiter=Thisdelimiter, skiprows=0)
         return my_matrix
     except:
         return None

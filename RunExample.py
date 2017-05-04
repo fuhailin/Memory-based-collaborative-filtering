@@ -1,7 +1,7 @@
 #! python3
 # -*- coding: utf-8 -*-
 import datetime
-
+import argparse
 from numpy import *
 from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
@@ -16,16 +16,35 @@ MovieLensData = {
     4: 'Datas/ml-20m/ratings.csv'
 }
 
+
+def parse_options():
+    optparser = argparse.ArgumentParser(description='Memory-based-collaborative-filtering Algorithm.')
+    optparser.add_argument(
+        '-f', '--input_file',
+        dest='filename',
+        help='filename containing csv',
+        required=True
+    )
+    optparser.add_argument(
+        '-s', '--test_size',
+        dest='test_size',
+        help='split data percentage',
+        default=0.2,
+        type=float
+    )
+    return optparser.parse_args()
+
+
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
-    filetype = 'ml-20m'
-    MyData = LoadMovieLens(filetype)
-    MyUBCF = UBCollaborativeFilter(filetype)
-    MyIBCF = IBCollaborativeFilter(filetype)
-    train_data, test_data = train_test_split(MyData, test_size=0.2)
+    options = parse_options()
+    MyData = LoadMovieLens(options.filename)
+    MyUBCF = UBCollaborativeFilter(options.filename)
+    MyIBCF = IBCollaborativeFilter(options.filename)
+    train_data, test_data = train_test_split(MyData, test_size=options.test_size)
     print(type(train_data))
     print(MyData.head())
-    if filetype == 'ml-20m':
+    if options.filename == 'ml-20m':
         n_users = MyData.userId.max()
         n_items = MyData.movieId.max()
     else:
@@ -33,12 +52,12 @@ if __name__ == '__main__':
         n_items = MyData.item_id.max()
     print('Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items))
 
-    test1 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, train_data))
-    test2 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, test_data))
-    test1.start()
-    test2.start()
-    train_data_matrix = test1.join()
-    test_data_matrix = test2.join()
+    thread1 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, train_data))
+    thread2 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, test_data))
+    thread1.start()
+    thread2.start()
+    train_data_matrix = thread1.join()
+    test_data_matrix = thread2.join()
     MyUBCF.train_data_matrix = train_data_matrix
     MyIBCF.train_data_matrix = train_data_matrix
     MyUBCF.test_data_matrix = test_data_matrix
@@ -58,12 +77,12 @@ if __name__ == '__main__':
 
         medTime = datetime.datetime.now()
         print((medTime - startTime).seconds)
-        t1 = Thread(target=MyUBCF.doEvaluate, args=(test_data_matrix, KList[i]))
-        t2 = Thread(target=MyIBCF.doEvaluate, args=(test_data_matrix, KList[i]))
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
+        threadu = Thread(target=MyUBCF.doEvaluate, args=(test_data_matrix, KList[i]))
+        threadi = Thread(target=MyIBCF.doEvaluate, args=(test_data_matrix, KList[i]))
+        threadu.start()
+        threadi.start()
+        threadu.join()
+        threadi.join()
 
         endTime = datetime.datetime.now()
         print((endTime - startTime).seconds)
