@@ -22,7 +22,7 @@ def parse_options():
     optparser.add_argument(
         '-f', '--input_file',
         dest='filename',
-        help='filename containing csv',
+        help='file used to predict',
         required=True
     )
     optparser.add_argument(
@@ -34,7 +34,6 @@ def parse_options():
     )
     return optparser.parse_args()
 
-
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
     options = parse_options()
@@ -44,7 +43,7 @@ if __name__ == '__main__':
     train_data, test_data = train_test_split(MyData, test_size=options.test_size)
     print(type(train_data))
     print(MyData.head())
-    if options.filename == 'ml-20m':
+    if options.filename == 'ml-20M':
         n_users = MyData.userId.max()
         n_items = MyData.movieId.max()
     else:
@@ -95,7 +94,7 @@ if __name__ == '__main__':
     plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('Datas/' + MyIBCF.FileType + '/UBCF ' + MyUBCF.FileType + '.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/'+options.test_size+'/UBCF ' + MyUBCF.FileType + '.png')
     plt.show()
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyIBCF.RMSE.values()), marker='o', label='RMSE')
@@ -105,5 +104,5 @@ if __name__ == '__main__':
     plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('Datas/' + MyIBCF.FileType + '/IBCF ' + MyIBCF.FileType + '.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/'+options.test_size+'/IBCF ' + MyIBCF.FileType + '.png')
     plt.show()

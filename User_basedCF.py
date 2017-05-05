@@ -7,17 +7,17 @@ from EvaluationHelper import *
 
 
 class UBCollaborativeFilter(object):
-    def __init__(self,FileType='ml-100k'):
+    def __init__(self, FileType='ml-100k'):
         self.lock = Lock()
-        self.SimilityMatrix = None
-        self.truerating = []
-        self.predictions = []
-        self.train_data_matrix = None
-        self.test_data_matrix = None
+        self.SimilityMatrix = None  # 相似度矩阵
+        self.truerating = []  # 真实评分集合
+        self.predictions = []  # 预测评分集合
+        self.train_data_matrix = None  # 用于训练的评分矩阵
+        self.test_data_matrix = None  # 用于测试的评分矩阵
         self.testDataFrame = None
         self.RMSE = dict()
         self.MAE = dict()
-        self.UserMeanMatrix = None
+        self.UserMeanMatrix = None  # 用户平均分矩阵
         self.FileType = FileType
 
     ### 平均加权策略，预测userId对itemId的评分
@@ -46,7 +46,8 @@ class UBCollaborativeFilter(object):
         self.RMSE[K] = RMSE(self.truerating, self.predictions)
         self.MAE[K] = MAE(self.truerating, self.predictions)
         print("UBCF  K=%d,RMSE:%f,MAE:%f" % (K, self.RMSE[K], self.MAE[K]))
-        Savetxt('Datas/'+self.FileType+'/User-basedCF.txt', "UBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (K, self.RMSE[K], self.MAE[K]))
+        Savetxt('Datas/' + self.FileType + '/User-basedCF.txt',
+                "UBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (K, self.RMSE[K], self.MAE[K]))
 
     def Clear(self):
         self.truerating = []

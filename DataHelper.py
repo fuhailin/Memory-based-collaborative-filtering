@@ -80,7 +80,7 @@ def LoadMovieLens(FileType='ml-100k'):
     if FileType == 'ml-10M':
         header = ['user_id', 'item_id', 'rating', 'timestamp']
         data = pd.read_table('Datas/ml-10M/ratings.dat', sep="::", header=None, names=header, engine='python')
-    if FileType == 'ml-20m':
+    if FileType == 'ml-20M':
         data = pd.read_csv('Datas/ml-20m/ratings.csv')
     return data
 
@@ -93,7 +93,7 @@ def SpiltData(DataSet, SpiltRate=0.25):
 # 给定用户实例编号，和相似度矩阵，得到最相似的K个用户,对用户共同评价过的物品中找到最相似的K个对象
 def get_K_Neighbors(Train_data_matrix, simility_matrix, knumber=10):
     SIM = simility_matrix.copy()
-    zeroset = numpy.where(Train_data_matrix == 0)
+    zeroset = np.where(Train_data_matrix == 0)
     SIM[zeroset] = 0
     myresult = sparse_argsort(-SIM)[0:knumber]
     return myresult
@@ -112,7 +112,7 @@ def Savetxt(FilePath, message='', mode='a'):
 
 
 def DataFrame2Matrix(n_users, n_items, dataframe):
-    train_data_matrix = numpy.zeros((n_users, n_items))
+    train_data_matrix = np.zeros((n_users, n_items))
     for line in dataframe.itertuples():
         train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
     return train_data_matrix
