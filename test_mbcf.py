@@ -1,6 +1,11 @@
-# content of test_sample.py
-def inc(x):
-    return x + 1
+#coding=utf-8
 
-def test_mbcf():
-    inc(3) == 5
+class TestClass:
+
+    def test_one(self):
+        x = "this"
+        assert "h" in x
+
+    def test_two(self):
+        x = "hello"
+        assert x == "hi"

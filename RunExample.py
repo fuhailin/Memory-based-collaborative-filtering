@@ -34,6 +34,7 @@ def parse_options():
     )
     return optparser.parse_args()
 
+
 if __name__ == '__main__':
     startTime = datetime.datetime.now()
     options = parse_options()
@@ -55,8 +56,8 @@ if __name__ == '__main__':
     thread2 = ThreadWithReturnValue(target=DataFrame2Matrix, args=(n_users, n_items, test_data))
     thread1.start()
     thread2.start()
-    train_data_matrix = thread1.join()
-    test_data_matrix = thread2.join()
+    train_data_matrix = thread1.join()  # 获取返回值
+    test_data_matrix = thread2.join()  # 获取返回值
     MyUBCF.train_data_matrix = train_data_matrix
     MyIBCF.train_data_matrix = train_data_matrix
     MyUBCF.test_data_matrix = test_data_matrix
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('Datas/' + MyIBCF.FileType + '/'+options.test_size+'/UBCF ' + MyUBCF.FileType + '.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/' + options.test_size + '/UBCF ' + MyUBCF.FileType + '.png')
     plt.show()
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyIBCF.RMSE.values()), marker='o', label='RMSE')
@@ -104,5 +105,5 @@ if __name__ == '__main__':
     plt.ylabel('Value')
     plt.legend()
     plt.grid()
-    plt.savefig('Datas/' + MyIBCF.FileType + '/'+options.test_size+'/IBCF ' + MyIBCF.FileType + '.png')
+    plt.savefig('Datas/' + MyIBCF.FileType + '/' + options.test_size + '/IBCF ' + MyIBCF.FileType + '.png')
     plt.show()
