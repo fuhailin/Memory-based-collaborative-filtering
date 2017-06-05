@@ -63,7 +63,7 @@ if __name__ == '__main__':
     MyUBCF.UserMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(1), (MyUBCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
     MyIBCF.ItemMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(0), (MyUBCF.train_data_matrix != 0).sum(0))  # 按Y轴方向获取非0元素均值，如果某行所有元素为0返回nan
     MyIBCF.ItemMeanMatrix[np.isnan(MyIBCF.ItemMeanMatrix)] = 0
-    KList = [25 , 50, 75, 100, 125, 150]
+    KList = [25, 50, 75, 100, 125, 150]
     for i in range(len(KList)):
         MyUBCF.truerating = []
         MyUBCF.predictions = []
