@@ -1,12 +1,13 @@
 #! python3
 # -*- coding: utf-8 -*-
+import argparse
 import datetime
-from numpy import *
-from threading import Thread
-from ThreadWithReturn import *
-from sklearn.metrics.pairwise import cosine_similarity
+
 import matplotlib.pyplot as plt
+from sklearn.metrics.pairwise import cosine_similarity
+
 from Item_basedCF import *
+from ThreadWithReturn import *
 from User_basedCF import *
 
 MovieLensData = {
@@ -16,14 +17,30 @@ MovieLensData = {
     4: 'Datas/ml-20m/ratings.csv'
 }
 
+
+def parseargs():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--ratings",
+                        type=str,
+                        default='ml-100k',
+                        help="Ratings file")
+
+    parser.add_argument("--testsize",
+                        type=float,
+                        default=0.2,
+                        help="Percentage of test data")
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
+    myparser = parseargs()
     startTime = datetime.datetime.now()
-    # MyData = LoadMovieLens1M()
-    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
-    # MyData = LoadMovieLens10M()
+    MyData = LoadMovieLensData(myparser.ratings)
     MyUBCF = UBCollaborativeFilter()
     MyIBCF = IBCollaborativeFilter()
-    train_data, test_data = train_test_split(MyData, test_size=0.1)
+    train_data, test_data = train_test_split(MyData, test_size=myparser.testsize)
     print(type(train_data))
     print(MyData.head())
     n_users = MyData.user_id.max()
@@ -43,15 +60,15 @@ if __name__ == '__main__':
 
     MyUBCF.SimilityMatrix = cosine_similarity(train_data_matrix)
     MyIBCF.SimilityMatrix = cosine_similarity(train_data_matrix.T)
-    MyUBCF.UserMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(1),
-                                              (MyUBCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
-    MyIBCF.ItemMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(0),
-                                              (MyUBCF.train_data_matrix != 0).sum(0))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
-    MyIBCF.ItemMeanMatrix[isnan(MyIBCF.ItemMeanMatrix)] = 0
-    KList = [25, 50, 75, 100, 125, 150]
+    MyUBCF.UserMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(1), (MyUBCF.train_data_matrix != 0).sum(1))  # 按X轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    MyIBCF.ItemMeanMatrix = numpy.true_divide(MyUBCF.train_data_matrix.sum(0), (MyUBCF.train_data_matrix != 0).sum(0))  # 按Y轴方向获取非0元素均值，如果某行所有元素为0返回nan
+    MyIBCF.ItemMeanMatrix[np.isnan(MyIBCF.ItemMeanMatrix)] = 0
+    KList = [25 , 50, 75, 100, 125, 150]
     for i in range(len(KList)):
-        MyUBCF.Clear()
-        MyIBCF.Clear()
+        MyUBCF.truerating = []
+        MyUBCF.predictions = []
+        MyIBCF.truerating = []
+        MyIBCF.predictions = []
 
         medTime = datetime.datetime.now()
         print((medTime - startTime).seconds)
@@ -63,26 +80,29 @@ if __name__ == '__main__':
         t2.join()
 
         endTime = datetime.datetime.now()
-        print((endTime - startTime).seconds)
-    '''
+        print("Cost time:%d seconds" % (endTime - startTime).seconds)
+        Savetxt("Docs/%s/UBCF %s %1.1f.txt" % (myparser.ratings, myparser.ratings, myparser.testsize),
+                "UBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (KList[i], MyUBCF.RMSE[KList[i]], MyUBCF.MAE[KList[i]]))
+        Savetxt('Docs/%s/IBCF %s %1.1f.txt' % (myparser.ratings, myparser.ratings, myparser.testsize),
+                "IBCF  K=%d\tRMSE:%f\tMAE:%f\t" % (KList[i], MyIBCF.RMSE[KList[i]], MyIBCF.MAE[KList[i]]))
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyUBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyUBCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of UBCF in MovieLens 10M')
+    plt.title('The Error of UBCF in MovieLens ' + myparser.ratings)
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
-    plt.savefig('UBCF ml-10M.png')
+    plt.savefig('Docs/%s/UBCF %s %1.1f.png' % (myparser.ratings, myparser.ratings, myparser.testsize))
     plt.show()
+    plt.gcf().clear()
     # Check performance by plotting train and test errors
     plt.plot(KList, list(MyIBCF.RMSE.values()), marker='o', label='RMSE')
     plt.plot(KList, list(MyIBCF.MAE.values()), marker='v', label='MAE')
-    plt.title('The Error of IBCF in MovieLens 10M')
+    plt.title('The Error of IBCF in MovieLens ' + myparser.ratings)
     plt.xlabel('K')
     plt.ylabel('value')
     plt.legend()
     plt.grid()
-    plt.savefig('IBCF ml-10M.png')
+    plt.savefig('Docs/%s/IBCF %s %1.1f.png' % (myparser.ratings, myparser.ratings, myparser.testsize))
     plt.show()
-'''
