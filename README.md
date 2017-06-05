@@ -3,10 +3,11 @@ contain User-based CF([UBCF](https://github.com/fuhailin/Memory-based-collaborat
 A robust k-nearest neighbors Recommender System use MovieLens dataset in Python
 
 ## User-based collaborative filter
-K=25    RunTime：1s
+> *K=25    RunTime：1s
+    RMSE:0.940611
+    MAE:0.884748.*
 
-RMSE:0.940611
-MAE:0.884748
+
 ![image](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/Docs/ml-100k/UBCF%20ml-100k%200.2.png)
 ![image](https://github.com/fuhailin/Memory-based-collaborative-filtering/blob/master/Docs/ml-100k/IBCF%20ml-100k%200.2.png)
 
