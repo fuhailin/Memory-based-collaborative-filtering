@@ -88,7 +88,7 @@ ENV/
 # Rope project settings
 .ropeproject
 .idea/
-
+Datas/ml-1m/
+Datas/ml-10M100K/
+Datas/ml-20m/
 *.data
-*.csv
-*.dat

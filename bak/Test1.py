@@ -140,6 +140,7 @@ def parseargs():
 
 
 if __name__ == "__main__":
+    parseargs()
     MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
     print(MyData.head())
     n_users = MyData.user_id.unique().shape[0]
