@@ -68,7 +68,7 @@ def LoadDoubanData(FilePath='Datas/Mydata.pkl'):
 
 def LoadMovieLensData(FileType='ml-100k'):
     """
-    :param FilePath:
+    :param FileType:
     :return: DataFrame
     """
     if FileType == 'ml-100k':
