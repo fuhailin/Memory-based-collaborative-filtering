@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import numpy
 import pandas as pd
 import pickle
 import heapq
@@ -20,7 +19,7 @@ def SaveData2pkl(DictData, FilePath='Datas/Mydata.pkl', mode='wb'):
 
 def SaveData2cvs(MatrixData, FilePath='Datas/Mydata.pkl', Thisdelimiter=','):
     try:
-        numpy.savetxt(FilePath, MatrixData, delimiter=Thisdelimiter)
+        np.savetxt(FilePath, MatrixData, delimiter=Thisdelimiter)
         return True
     except Exception as e:
         print(repr(e))
@@ -40,7 +39,7 @@ def LoadData4pkl(FilePath='Datas/Mydata.pkl', mode='rb'):
 
 def LoadData4cvs(FilePath='Datas/Mydata.pkl', Thisdelimiter=',', mode='rb'):
     try:
-        my_matrix = numpy.loadtxt(open(FilePath, mode), delimiter=Thisdelimiter, skiprows=0)
+        my_matrix = np.loadtxt(open(FilePath, mode), delimiter=Thisdelimiter, skiprows=0)
         return my_matrix
     except:
         return None
@@ -67,42 +66,24 @@ def LoadDoubanData(FilePath='Datas/Mydata.pkl'):
     return UserRating
 
 
-def LoadMovieLens100k(FilePath='Datas/ml-100k/u.data'):
+def LoadMovieLensData(FileType='ml-100k'):
     """
-    :param FilePath:
+    :param FileType:
     :return: DataFrame
     """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, header=None, names=header)
-    return data
-
-
-def LoadMovieLens1M(FilePath='Datas/ml-1M/ratings.dat'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
-    return data
-
-
-def LoadMovieLens10M(FilePath='Datas/ml-10M100K/ratings.dat'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    header = ['user_id', 'item_id', 'rating', 'timestamp']
-    data = pd.read_table(FilePath, sep="::", header=None, names=header, engine='python')
-    return data
-
-
-def LoadMovieLens20M(FilePath='Datas/ml-20m/ratings.csv'):
-    """
-    :param FilePath:
-    :return: DataFrame
-    """
-    data = pd.read_csv(FilePath)
+    if FileType == 'ml-100k':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-100k/u.data', header=None, names=header)
+    elif FileType == 'ml-1M':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-1M/ratings.dat', header=None, names=header)
+    elif FileType == 'ml-10M':
+        header = ['user_id', 'item_id', 'rating', 'timestamp']
+        data = pd.read_table('Datas/ml-10M100K/ratings.dat', sep="::", header=None, names=header, engine='python')
+    elif FileType == 'ml-20M':
+        data = pd.read_csv('Datas/ml-20m/ratings.csv')
+    else:
+        data = None
     return data
 
 
@@ -114,7 +95,7 @@ def SpiltData(DataSet, SpiltRate=0.25):
 # 给定用户实例编号，和相似度矩阵，得到最相似的K个用户,对用户共同评价过的物品中找到最相似的K个对象
 def get_K_Neighbors(Train_data_matrix, simility_matrix, knumber=10):
     SIM = simility_matrix.copy()
-    zeroset = numpy.where(Train_data_matrix == 0)
+    zeroset = np.where(Train_data_matrix == 0)
     SIM[zeroset] = 0
     myresult = sparse_argsort(-SIM)[0:knumber]
     return myresult
@@ -133,7 +114,7 @@ def Savetxt(FilePath, message='', mode='a'):
 
 
 def DataFrame2Matrix(n_users, n_items, dataframe):
-    train_data_matrix = numpy.zeros((n_users, n_items))
+    train_data_matrix = np.zeros((n_users, n_items))
     for line in dataframe.itertuples():
         train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
     return train_data_matrix
@@ -150,8 +131,8 @@ def get_N_Recommends(neighborset, userIndex, Train_data_matrix, simility_matrix,
         recommendset = myTrain_data_matrix[neighborset]
         teat1 = np.where(recommendset >= heapq.nlargest(Nnumber, recommendset.flatten())[-1])
         return teat1[1]
-    else: # 冷启动处理
+    else:  # 冷启动处理
         watched = myTrain_data_matrix[userIndex].nonzero()
         myTrain_data_matrix[:, watched] = 0
         teat1 = np.vstack(np.unravel_index(np.argpartition(myTrain_data_matrix.flatten(), -2)[-Nnumber:], myTrain_data_matrix.shape)).T
-        return teat1[:,1]
+        return teat1[:, 1]
