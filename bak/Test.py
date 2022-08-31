@@ -165,7 +165,7 @@ class UserBasedCF():
 
 
 if __name__ == '__main__':
-    ratingfile = 'Datas/ml-100k/u.data'
+    ratingfile = 'G:\\PycharmProjects\\Memory-based-collaborative-filtering\\Datas\\ml-100k\\data\\u.data'
     usercf = UserBasedCF()
     usercf.generate_dataset(ratingfile)
     usercf.calc_user_sim()
