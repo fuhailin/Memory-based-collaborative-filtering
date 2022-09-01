@@ -141,7 +141,7 @@ def parseargs():
 
 if __name__ == "__main__":
     parseargs()
-    MyData = LoadMovieLens100k('Datas/ml-100k/u.data')
+    MyData = LoadMovieLens100k('G:\\PycharmProjects\\Memory-based-collaborative-filtering\\Datas\\ml-100k\\data\\u.data')
     print(MyData.head())
     n_users = MyData.user_id.unique().shape[0]
     n_items = MyData.item_id.unique().shape[0]

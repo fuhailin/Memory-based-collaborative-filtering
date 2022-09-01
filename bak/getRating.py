@@ -8,8 +8,9 @@
 # Created:     14-06-2014  
 # --------------------------------------------------------
 from math import sqrt
-from loadMovieLens import loadMovieLensTrain
-from loadMovieLens import loadMovieLensTest
+from DataHelper import LoadMovieLensData
+# from loadMovieLens import loadMovieLensTrain
+# from loadMovieLens import loadMovieLensTest
 
 
 ### 计算pearson相关度

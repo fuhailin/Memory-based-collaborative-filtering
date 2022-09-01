@@ -73,7 +73,7 @@ def LoadMovieLensData(FileType='ml-100k'):
     """
     if FileType == 'ml-100k':
         header = ['user_id', 'item_id', 'rating', 'timestamp']
-        data = pd.read_table('Datas/ml-100k/u.data', header=None, names=header)
+        data = pd.read_table('G:\\PycharmProjects\\Memory-based-collaborative-filtering\\Datas\\ml-100k\\data\\u.data', header=None, names=header)
     elif FileType == 'ml-1M':
         header = ['user_id', 'item_id', 'rating', 'timestamp']
         data = pd.read_table('Datas/ml-1M/ratings.dat', header=None, names=header)

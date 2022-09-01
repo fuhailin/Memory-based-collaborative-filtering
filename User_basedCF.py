@@ -1,5 +1,3 @@
-#! python3
-# -*- coding: utf-8 -*-
 from DataHelper import *
 from EvaluationHelper import *
 
@@ -14,21 +12,26 @@ class UBCollaborativeFilter(object):
         self.MAE = dict()
         self.UserMeanMatrix = None
 
-    ### 平均加权策略，预测userId对itemId的评分
+    # 平均加权策略，预测userId对itemId的评分
     def getRating(self, Train_data_matrix, userId, simility_matrix, neighborset):
-        simSums = numpy.sum(simility_matrix[neighborset])  # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
-        averageOfUser = self.UserMeanMatrix[userId]  # 获取userId 的平均值
-        jiaquanAverage = (Train_data_matrix[neighborset] - self.UserMeanMatrix[neighborset]).dot(simility_matrix[neighborset])  # 计算每个用户的加权，预测
+        # simSums为0，即该项目尚未被其他用户评分，这里的处理方法：返回用户平均分
+        simSums = np.sum(simility_matrix[neighborset])
+        # 获取userId 的平均值
+        averageOfUser = self.UserMeanMatrix[userId]
+        # 计算每个用户的加权，预测得分
+        jiaquanAverage = (Train_data_matrix[neighborset]).dot(simility_matrix[neighborset])
         if simSums == 0:
-            return averageOfUser
+            return 0
         else:
-            return averageOfUser + jiaquanAverage / simSums
+            return jiaquanAverage / simSums
 
     def doEvaluate(self, testDataMatrix, K):
         a, b = testDataMatrix.nonzero()
         for userIndex, itemIndex in zip(a, b):
-            neighborset = get_K_Neighbors(self.train_data_matrix[:, itemIndex], self.SimilityMatrix[userIndex], K)  # 用户最相似的K个用户
-            prerating = self.getRating(self.train_data_matrix[:, itemIndex], userIndex, self.SimilityMatrix[userIndex], neighborset)  # 基于训练集预测用户评分(用户数目<=K)
+            # 用户最相似的K个用户
+            neighborset = get_K_Neighbors(self.train_data_matrix[:, itemIndex], self.SimilityMatrix[userIndex], K)
+            # 基于训练集预测用户评分(用户数目<=K)
+            prerating = self.getRating(self.train_data_matrix[:, itemIndex], userIndex, self.SimilityMatrix[userIndex], neighborset)
             self.truerating.append(testDataMatrix[userIndex][itemIndex])
             self.predictions.append(prerating)
             # print(len(self.predictions))
